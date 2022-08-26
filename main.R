@@ -7,9 +7,46 @@ r2_score <- function(y, y_predict){
   1 - sum((y - y_predict)^2) / sum((y - mean(y)) ^ 2)
 }
 
+month_to_num <- function(str_month) {
+  unname(sapply(str_month, FUN = function(x) {
+    t <- unlist(strsplit(x, "-", fixed = T))
+    return (as.integer(t[1]) * 12 + as.integer(t[2]) - 1) }))
+}
+
+my_add_month <- function(str_month, n) {
+  t_num <- month_to_num(str_month) + n
+  unname(sapply(t_num, FUN = function(x) 
+    paste0(
+      sprintf("%02d", x %/% 12), 
+      "-", 
+      sprintf("%02d", x %% 12 + 1))))
+}
+
+my_add_month("20-05", -5)
+
+prepare_data <- function(df) {
+  df$VISIT_YEAR_MONTH <- unname(sapply(df$VISIT_MONTH_YEAR,
+                                       function(x) paste0(rev(
+                                         unlist(strsplit(x, ".", fixed = T))), 
+                                         collapse = "-")))
+  return (df)
+}
+
+
 df_train <- read_csv2("train_dataset_train.csv")
+df_train <- prepare_data(df_train)
+
+test_year_month <- "22-03"
+
+df_test <- df_train %>% filter(VISIT_YEAR_MONTH == test_year_month)
+
+unique(df_train$VISIT_YEAR_MONTH) 
+head(df_train$VISIT_YEAR_MONTH)
+
 
 df_test <- read_csv2("test_dataset_test.csv")
+
+
 
 
 df_train <- df_train %>% inner_join(df_test %>% select(MKB_CODE) %>% distinct(), by = "MKB_CODE")
